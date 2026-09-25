@@ -1,0 +1,30 @@
+node_modules/
+dist/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.tsbuildinfo
+.env
+backend/.env
+backups/
+.tools/
+
+# Configuración privada y archivos locales
+.env.*
+!.env.example
+*.log
+*.dump
+*.backup
+*.pem
+*.key
+.DS_Store
+.agents/
+.codex/
+
+# Fuentes empresariales: contienen datos personales y posibles credenciales.
+/ACTIVOSTI.md
+/LICENCIASDML.md
+/depurado/
+
+# Maqueta independiente de otro proyecto
+/maqueta-otra-empresa/

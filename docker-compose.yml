@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-licencias_dml}
+      POSTGRES_USER: ${POSTGRES_USER:-licencias_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - licencias_pgdata:/var/lib/postgresql/data
+      - ./backend/db/postgres-schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+
+volumes:
+  licencias_pgdata:
