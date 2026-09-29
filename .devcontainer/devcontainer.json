@@ -1,0 +1,16 @@
+{
+  "name": "Inventario DML",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": { "label": "Inventario DML", "onAutoForward": "notify", "visibility": "private" },
+    "3001": { "onAutoForward": "ignore" },
+    "5433": { "onAutoForward": "ignore" }
+  },
+  "postCreateCommand": "bash .devcontainer/preparar.sh",
+  "remoteUser": "vscode"
+}

@@ -28,3 +28,7 @@ Las pruebas de integración con PostgreSQL requieren una instancia desechable co
 El repositorio incluye el código y los ejemplos de configuración. Los inventarios empresariales originales, antecedentes archivados, bases de datos, respaldos y secretos se conservan localmente y se excluyen mediante `.gitignore`. La maqueta independiente `maqueta-otra-empresa/` también queda excluida.
 
 Consultar el [protocolo de publicación](docs/publicacion-github.md). Publicar el código en GitHub no despliega la aplicación ni transfiere los datos de PostgreSQL.
+
+## Desarrollo desde el navegador
+
+Abrir un Codespace del repositorio e iniciar con `bash iniciar-codespaces.sh`. La configuración instala Node.js y Docker, y genera variables privadas. Crear el administrador con `bash crear-admin-codespaces.sh` en otra terminal y abrir el puerto 5173. Instrucciones completas: [Codespaces](docs/codespaces.md).
