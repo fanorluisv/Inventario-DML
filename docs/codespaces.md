@@ -42,6 +42,23 @@ node backend/backup-operational.js --docker
 
 ## Solución de problemas
 
+### El enlace `app.github.dev` muestra «page can’t be found»
+
+El enlace del puerto depende de que el Codespace esté activo, la aplicación esté iniciada y el puerto esté reenviado. Crear el Codespace o publicar cambios en GitHub no inicia la aplicación: `postCreateCommand` solo prepara el entorno.
+
+1. Abrir el Codespace desde GitHub con la cuenta que lo creó. Si se eliminó y se creó otro, usar el enlace del nuevo entorno.
+2. En la terminal, desde la carpeta del proyecto, ejecutar `bash iniciar-codespaces.sh` y mantenerla abierta. Esperar a que Vite anuncie `http://127.0.0.1:5173/`. Si el comando termina con un error, resolver ese error primero: la interfaz se inicia después de PostgreSQL, el respaldo y la API.
+3. En **Ports / Puertos**, añadir **5173** si no aparece. Usar **Open in Browser / Abrir en el navegador** para obtener el enlace vigente. Conservar la visibilidad **Private / Privado** e iniciar sesión en GitHub con la cuenta propietaria. El protocolo del puerto debe ser **HTTP**, porque Vite sirve HTTP internamente aunque el enlace externo sea HTTPS.
+
+Para comprobar el arranque, ejecutar en otra terminal del Codespace:
+
+```bash
+curl --fail --show-error http://127.0.0.1:5173/ -o /dev/null
+curl --fail --show-error http://127.0.0.1:3001/api/v1/salud
+```
+
+Si la primera comprobación falla, revisar la terminal de arranque: la interfaz no está disponible. Si ambas responden y el enlace externo falla, revisar el reenvío, el enlace vigente y la sesión de GitHub. Si aparece «Blocked request», reiniciar mediante `bash iniciar-codespaces.sh`, que autoriza el dominio exacto del Codespace en Vite.
+
 - Dependencias pendientes: `bash .devcontainer/preparar.sh`.
 - PostgreSQL no inicia: `docker compose logs db`.
 - API ocupada: detener la terminal anterior con `Ctrl+C` y volver a iniciar.

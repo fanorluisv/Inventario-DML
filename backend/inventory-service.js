@@ -59,27 +59,33 @@ async function synchronizeAssets(client, next, previous, actor) {
   const byName = new Map();
   for (const p of people) {
     const key = nameKey(p.nombre);
-    if (byName.has(key)) throw new InventoryError('Hay responsables con el mismo nombre. Revisa sus identificaciones antes de guardar.', 409);
-    byName.set(key, p.id);
+    byName.set(key, [...(byName.get(key) || []), p.id]);
   }
-  const allNames = new Set([...next.responsables.map(p => p.name), ...next.equipos.map(a => a.owner).filter(n => n !== 'Sin asignar')]);
+  const personId = name => {
+    const ids = byName.get(nameKey(name)) || [];
+    if (ids.length > 1) throw new InventoryError(`Hay varios responsables llamados «${name}». Revisa sus identificaciones antes de cambiar esa asignación.`, 409);
+    return ids[0] || null;
+  };
+  const changedPeople = next.responsables.filter(p => !previous.responsables.some(old => isDeepStrictEqual(old, p)));
+  const changedOwners = next.equipos.filter(a => !previous.equipos.some(old => old.id === a.id && old.owner === a.owner));
+  const allNames = new Set([...changedPeople.map(p => p.name), ...changedOwners.map(a => a.owner).filter(n => n !== 'Sin asignar')]);
   for (const name of allNames) {
     const p = next.responsables.find(p => p.name === name);
     if (!byName.has(nameKey(name))) {
       const r = await client.query('INSERT INTO responsables(nombre,identificacion) VALUES($1,$2) RETURNING id', [name, p?.identification || null]);
-      byName.set(nameKey(name), r.rows[0].id);
-    } else if (p) await client.query('UPDATE responsables SET identificacion=$1,actualizado_en=now() WHERE id=$2', [p.identification || null, byName.get(nameKey(name))]);
+      byName.set(nameKey(name), [r.rows[0].id]);
+    } else if (p) await client.query('UPDATE responsables SET identificacion=$1,actualizado_en=now() WHERE id=$2', [p.identification || null, personId(name)]);
   }
   for (const old of previous.responsables) if (!next.responsables.some(p => p.name === old.name)) await client.query('UPDATE responsables SET identificacion=NULL,actualizado_en=now() WHERE nombre=$1', [old.name]);
   for (const a of next.equipos) {
     const old = previous.equipos.find(x => x.id === a.id);
     if (isDeepStrictEqual(old, a)) continue;
-    const params = [a.id, a.type, a.name, a.brand, a.model, a.serial, a.acquired || null, a.status, a.status === 'Baja' ? 'Baja' : a.owner === 'Sin asignar' ? 'Libre' : 'Asignado', byName.get(nameKey(a.owner)) || null, a.observations, a.description || ''];
+    const params = [a.id, a.type, a.name, a.brand, a.model, a.serial, a.acquired || null, a.status, a.status === 'Baja' ? 'Baja' : a.owner === 'Sin asignar' ? 'Libre' : 'Asignado', a.owner === 'Sin asignar' || (old && old.owner === a.owner) ? null : personId(a.owner), a.observations, a.description || ''];
     if (!old) {
       const reserved = await client.query('SELECT 1 FROM activos WHERE codigo=$1', [a.id]);
       if (reserved.rowCount) throw new InventoryError(`El código ${a.id} ya se utilizó. Recarga para obtener otro código.`, 409);
       await client.query('INSERT INTO activos(codigo,tipo,nombre,marca,modelo,serial,fecha_adquisicion,estado,disponibilidad,responsable_id,observaciones,descripcion) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)', params);
-    } else await client.query('UPDATE activos SET tipo=$2,nombre=$3,marca=$4,modelo=$5,serial=$6,fecha_adquisicion=$7,estado=$8,disponibilidad=$9,responsable_id=$10,observaciones=$11,descripcion=$12,actualizado_en=now() WHERE codigo=$1', params);
+    } else await client.query('UPDATE activos SET tipo=$2,nombre=$3,marca=$4,modelo=$5,serial=$6,fecha_adquisicion=$7,estado=$8,disponibilidad=$9,responsable_id=CASE WHEN $13 THEN responsable_id ELSE $10 END,observaciones=$11,descripcion=$12,actualizado_en=now() WHERE codigo=$1', [...params, old.owner === a.owner]);
     if (!old || old.owner !== a.owner) await client.query('INSERT INTO historial_responsables(codigo,anterior,nuevo,actor_id) VALUES($1,$2,$3,$4)', [a.id, old?.owner || 'Sin registro previo', a.owner, actor]);
   }
   for (const old of previous.equipos) if (!next.equipos.some(a => a.id === old.id)) {
@@ -168,4 +174,4 @@ function installInventory(app, { pool, auth, encrypt, decrypt }) {
     return res.status(409).json({ error: { message: 'Actualiza la página y usa los formularios del inventario integrado.' } });
   });
 }
-module.exports = { blank, migrate, initialize, transaction, installInventory };
+module.exports = { blank, migrate, initialize, transaction, installInventory, synchronizeAssets };
