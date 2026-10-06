@@ -65,7 +65,7 @@ def backup(root, docker=False, code_only=False):
     head = git(root, 'rev-parse', 'HEAD')
     status = git(root, 'status', '--short')
     manifest = {'fecha_utc': now(), 'commit': head, 'cambios_sin_commit': status,
-                'incluye_base': bool(dump), 'origen': os.environ.get('CODESPACE_NAME', 'equipo-local'),
+                'incluye_base': bool(dump), 'origen': os.environ.get('CODESPACE_NAME', 'codespace' if str(root).startswith('/workspaces/') else 'equipo-local'),
                 'configuracion_privada': [name for name in ['.env', 'backend/.env'] if (root / name).exists()]}
     history = root / 'backkupcode.md'
     marker = root / '.runtime/history-head'

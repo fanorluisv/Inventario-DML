@@ -100,7 +100,7 @@ La réplica del Codespace conserva versiones en `replica-codespace/` y un enlace
 Servicio local de usuario instalado: `licencias-dml-replica.service`, cada 15
 minutos mientras el computador esté encendido, con sesión iniciada y conexión.
 No inicia automáticamente un Codespace detenido. El Codespace activo genera
-respaldos cada hora; su suspensión sigue siendo la normal de GitHub.
+respaldos cada hora, incluso si la API no está disponible; su suspensión sigue siendo la normal de GitHub.
 Se verificó una descarga real con SHA256 y se restauraron los respaldos local y
 remoto en bases temporales. La clave del respaldo remoto descifró correctamente
 las credenciales restauradas sin mostrarlas. Se corrigió la transferencia de
