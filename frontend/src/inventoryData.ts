@@ -1,6 +1,6 @@
 import { assetCode, demoEquipmentCode } from './assetCodes'
 export type Display = { id: string; brand: string; model: string; size: string; serial: string; acquired: string; status: string; equipmentId: string; history: string[] }
-export type License = { id: string; product: string; version: string; origin: string; acquired: string; expires: string; modality: string; equipmentId: string; quantity:number; assignedIds:string[]; rule: string; serial: string; observations: string }
+export type License = { id: string; product: string; version: string; origin: string; acquired: string; expires: string; periodYears?: number; modality: string; equipmentId: string; quantity:number; assignedIds:string[]; rule: string; serial: string; observations: string }
 export const initialDisplays: Display[] = [0,2,4,6,8].map((n,i)=>({id:assetCode('Monitor',i+1),brand:'Dell',model:'P2422H',size:'24 pulgadas',serial:`DEMO-MON-${200+i}`,acquired:'2023-02-10',status:'Buen estado',equipmentId:n===8?'':demoEquipmentCode(n),history:['Alta de demostración; fecha de asignación histórica por confirmar.']}))
 export const initialLicenses: License[] = [
  {serial:'',observations:'',id:'LIC-002',product:'AutoCAD',version:'Por confirmar',origin:'Adquirida por separado',acquired:'2026-01-15',expires:'2027-01-14',modality:'Suscripción',equipmentId:'',quantity:6,assignedIds:[demoEquipmentCode(0)],rule:'Condiciones de asignación y transferencia por confirmar.'},

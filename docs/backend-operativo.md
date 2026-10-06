@@ -38,6 +38,7 @@ El registro y edición de equipos incluye búsqueda con sugerencias de sistema o
 - Bodega, existencias, entregas vinculadas al acta y devoluciones.
 - Actas con copia de los activos entregados, hoja de vida, fotografías JPG/PNG e impresión/PDF. Las correcciones de actas, eventos, licencias, monitores y entregas de accesorios conservan sus códigos y registran valores anteriores y nuevos en auditoría. Las actas conservan los activos originales y el historial no se puede borrar.
 - Fechas de formularios y documentos en `dd/mm/aaaa` (por ejemplo, `06/10/2026`), almacenadas en PostgreSQL en formato ISO. Editar una licencia conserva sus cupos asignados; la cantidad no puede reducirse por debajo de las asignaciones existentes.
+- Suscripciones con período de 1 a 100 años: vencimiento igual a fecha de adquisición/inicio más años calendario; el 29 de febrero se ajusta al 28 cuando corresponda. Las licencias existentes sin período conservan su fecha registrada. En Reportes se consultan vencidas, próximas a vencer en 30 días, vigentes, perpetuas y sin fecha, con exportación CSV.
 - Reportes y CSV con los filtros aplicados.
 - Historial real de cambios de responsable desde la integración. No se inventan movimientos anteriores.
 - Credenciales de equipo, correo y NAS, cifradas y exclusivas del administrador.

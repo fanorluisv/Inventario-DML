@@ -183,7 +183,8 @@ test('Integración PostgreSQL: migración, módulos, roles, transacciones y conc
       const current = (await call('inventario', token)).data;
       const corrected = structuredClone(current.state);
       corrected.licencias[0].acquired = '2025-12-31';
-      corrected.licencias[0].expires = '2098-12-31';
+      corrected.licencias[0].periodYears = 2;
+      corrected.licencias[0].expires = '2027-12-31';
       corrected.monitores[0].model = 'Modelo corregido';
       corrected['hojas-vida'][0].date = '2026-01-09';
       corrected.actas[0].date = '2026-01-12';
@@ -199,6 +200,8 @@ test('Integración PostgreSQL: migración, módulos, roles, transacciones y conc
       assert.equal((await call('inventario', readerToken, { revision: saved.data.revision, state: corrected }, 'PUT')).status, 403);
       const invalid = structuredClone(corrected); invalid.licencias[0].quantity = 0;
       assert.equal((await call('inventario', token, { revision: saved.data.revision, state: invalid }, 'PUT')).status, 422);
+      const mismatch = structuredClone(corrected); mismatch.licencias[0].expires = '2028-12-31';
+      assert.equal((await call('inventario', token, { revision: saved.data.revision, state: mismatch }, 'PUT')).status, 422);
       const moved = structuredClone(corrected); moved.actas[0].asset.serial = 'otro';
       assert.equal((await call('inventario', token, { revision: saved.data.revision, state: moved }, 'PUT')).status, 422);
     });
@@ -208,7 +211,7 @@ test('Integración PostgreSQL: migración, módulos, roles, transacciones y conc
       assert.ok(loaded.state.equipos.some(a => a.serial === 'BROWSER-001'));
       assert.ok(loaded.state.responsables.some(p => p.name === 'Responsable del navegador' && p.identification === '009988'));
       assert.ok(!loaded.state.responsables.some(p => p.name === 'Borrador cancelado'));
-      assert.ok(loaded.state.licencias.some(l => l.product === 'Licencia del navegador'));
+      assert.ok(loaded.state.licencias.some(l => l.product === 'Licencia del navegador' && l.periodYears === 2 && l.expires === '2028-09-01'));
     });
   } finally {
     if (server) await new Promise(resolve => server.close(resolve));

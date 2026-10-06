@@ -53,10 +53,14 @@ async function browserCheck(base, password) {
     assert.equal(await evaluate("document.querySelector('[name=acquired]').previousElementSibling.value"), '01/10/2026');
     await fill('acquired', '31/02/2026');
     assert.equal(await evaluate("document.querySelector('[name=acquired]').form.checkValidity()"), false);
-    await fill('acquired', '01/09/2026'); await fill('expires', '01/09/2027');
+    await fill('acquired', '01/09/2026'); await fill('periodYears', '2');
+    assert.equal(await evaluate("document.querySelector('[name=expires]').value"), '2028-09-01');
     await click('Guardar licencia');
     await until("document.body.textContent.includes('Todos los cambios guardados') && document.body.textContent.includes('Licencia actualizada')");
     assert.ok((await evaluate('document.body.textContent')).includes('01/09/2026'));
+    await click('Reportes');
+    await until("document.body.textContent.includes('Reporte de vencimientos de licencias')");
+    assert.ok((await evaluate('document.body.textContent')).includes('01/09/2028'));
     await click('Responsables');
     await until("document.body.textContent.includes('Nuevo responsable')");
     await click('Usuarios'); await until("document.body.textContent.includes('Usuarios y permisos')");

@@ -83,6 +83,15 @@ function validateInventory(next, previous, credentials) {
     if (!Array.isArray(l.assignedIds) || new Set(l.assignedIds).size !== l.assignedIds.length || l.assignedIds.length > l.quantity) fail('Cupos de licencia duplicados o insuficientes.');
     l.assignedIds.forEach(id => reference(id, 'Licencia')); reference(l.equipmentId, 'Licencia', true);
     date(l.acquired, 'Compra de licencia'); date(l.expires, 'Vencimiento');
+    if (l.periodYears !== undefined) {
+      if (l.modality !== 'Suscripción' || !Number.isSafeInteger(l.periodYears) || l.periodYears < 1 || l.periodYears > 100 || !l.acquired) fail('El período requiere una suscripción, fecha de inicio y entre 1 y 100 años.');
+      const start = new Date(`${l.acquired}T12:00:00Z`);
+      const year = start.getUTCFullYear() + l.periodYears;
+      if (year > 9999) fail('El vencimiento excede el rango de fechas permitido.');
+      const last = new Date(Date.UTC(year, start.getUTCMonth() + 1, 0)).getUTCDate();
+      const day = start.getUTCDate(); start.setUTCDate(1); start.setUTCFullYear(year); start.setUTCDate(Math.min(day, last));
+      if (l.expires !== start.toISOString().slice(0,10)) fail('El vencimiento debe corresponder al inicio más el período de licencia.');
+    }
     if (l.expires && l.acquired && l.expires < l.acquired) fail('El vencimiento precede la compra.');
     if (l.origin === 'Incluida con el equipo' && (!l.equipmentId || l.quantity !== 1 || l.assignedIds.length !== 1 || l.assignedIds[0] !== l.equipmentId)) fail('La licencia incluida debe conservar un único equipo.');
     const old = previous.licencias.find(x => x.id === l.id);
