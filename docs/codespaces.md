@@ -10,6 +10,20 @@ Si el Codespace ya existía, guardar y sincronizar primero los cambios propios, 
 
 ## Iniciar y entrar
 
+El entorno inicia la aplicación automáticamente en segundo plano mediante `postStartCommand`.
+Para activar el mismo arranque en un Codespace existente después de actualizar el código:
+
+```bash
+bash .devcontainer/iniciar-automatico.sh
+```
+
+Si hay un inicio manual activo, detener primero su terminal con `Ctrl+C`.
+Consultar el arranque con `tail -n 60 .runtime/codespaces.log`.
+Para registrar el nuevo `postStartCommand` en un entorno existente, usar **Codespaces: Rebuild Container** (sin **Full Rebuild**) después de guardar un respaldo y las claves privadas.
+El inicio en segundo plano no depende de mantener abierta una terminal. Codespaces sigue
+suspendiéndose por inactividad; al volver a iniciar el entorno, el hook arranca la aplicación.
+La disponibilidad continua requiere desplegar en un servidor permanente.
+
 En la terminal del Codespace:
 
 ```bash
