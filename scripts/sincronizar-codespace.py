@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -47,11 +48,13 @@ def sync(root, codespace):
     if len(paths) != 1:
         raise RuntimeError('No se pudo identificar el respaldo remoto; no se modificó la réplica.')
     remote = paths[0]
+    if not re.fullmatch(re.escape(remote_root) + r'/backups/completos/inventario-completo-[0-9TZ]+\.tar\.gz', remote):
+        raise RuntimeError('Se rechazó una ruta remota inesperada.')
     archives = root / 'backups/completos/codespace'
     archives.mkdir(parents=True, exist_ok=True, mode=0o700)
     with tempfile.TemporaryDirectory(prefix='.descarga-', dir=archives) as temporary:
         destination = Path(temporary)
-        run([gh, 'codespace', 'cp', '-c', codespace, 'remote:' + remote,
+        run([gh, 'codespace', 'cp', '-e', '-c', codespace, 'remote:' + remote,
              'remote:' + remote + '.sha256', 'remote:' + remote + '.json', str(destination)])
         archive = destination / Path(remote).name
         expected = json.loads(archive.with_suffix(archive.suffix + '.json').read_text())
@@ -65,7 +68,14 @@ def sync(root, codespace):
         stage.mkdir(mode=0o700)
         try:
             with tarfile.open(archive) as bundle:
-                bundle.extractall(stage, filter='data')
+                members = bundle.getmembers()
+                for member in members:
+                    path = Path(member.name)
+                    if path.is_absolute() or '..' in path.parts or member.issym() or member.islnk() or not (member.isfile() or member.isdir()):
+                        raise RuntimeError('Le respaldo contiene una ruta o enlace inseguro.')
+                    if path.parts[0] not in {'proyecto', 'base-datos.dump', 'manifest.json'}:
+                        raise RuntimeError('Contenido inesperado en el respaldo.')
+                bundle.extractall(stage, members=members)
         except Exception:
             shutil.rmtree(stage)
             raise

@@ -7,6 +7,8 @@ if [[ "${CODESPACES:-}" != true ]]; then
 fi
 mkdir -p .runtime
 chmod 700 .runtime
+# Keep backups independent of the application launcher and its inherited lock.
+nohup bash scripts/respaldos-codespace.sh >>.runtime/respaldos-codespace.log 2>&1 </dev/null &
 # The launched process inherits the lock, preventing concurrent starts.
 exec 9>.runtime/codespaces.lock
 if ! flock -n 9; then

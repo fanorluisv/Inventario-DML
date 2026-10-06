@@ -172,17 +172,3 @@ No guardar secretos en este documento. No sobrescribir trabajo local o remoto.
 
 ## Registro automático de respaldo y sincronización
 
-
-- 2026-10-06T16:50:27+00:00 — Commits observados:
-  - 63593f6 Calcular vencimiento de licencias por período y agregar reporte de vigencia
-  - 04e3ad3 Documentar correcciones auditadas y fechas con año completo
-  - 0f38dfe Permitir fechas con año completo y corregir registros del inventario
-  - df72cec Centrar título de procesos y ajustar actas a tamaño carta
-  - 921f168 Iniciar aplicación automáticamente al arrancar Codespaces
-  - 870292a Agregar logo DML al encabezado del acta y retirar pantalla integrada
-  - 50415a3 Corregir guardado de equipos con responsables históricos duplicados
-  - c07c11d Retirar dependencias SQLite sin uso para instalar en Codespaces
-  - d6d4b19 Configurar PostgreSQL y entorno de desarrollo en Codespaces
-  - 50ba170 Publicación inicial de Inventario DML
-
-- 2026-10-06T16:50:28+00:00 — Respaldo inventario-completo-20261006T165027471410Z.tar.gz; commit 63593f6; base de datos: sí; SHA256 51095832e07ae75dbd0e54ccb6dcb93dfc0beb77c7171fb4e6c32b400a05a352.

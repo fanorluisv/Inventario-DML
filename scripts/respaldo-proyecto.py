@@ -19,7 +19,17 @@ def now():
 def git(root, *args):
     return subprocess.check_output(['git', '-C', str(root), *args], text=True).strip()
 
+def refresh_history(root):
+    template = root / 'docs/contexto-proyecto.md'
+    history = root / 'backkupcode.md'
+    heading = '## Registro automático de respaldo y sincronización'
+    if template.exists():
+        previous = history.read_text() if history.exists() else ''
+        entries = previous.split(heading, 1)[1] if heading in previous else ''
+        history.write_text(template.read_text().split(heading, 1)[0] + heading + '\n' + entries)
+
 def record(root, message):
+    refresh_history(root)
     with (root / 'backkupcode.md').open('a', encoding='utf-8') as stream:
         stream.write(f'\n- {now()} — {message}\n')
 
@@ -33,6 +43,7 @@ def node_binary():
 
 def backup(root, docker=False, code_only=False):
     root = root.resolve()
+    refresh_history(root)
     os.umask(0o077)
     target = root / 'backups/completos'
     target.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -90,6 +101,9 @@ def backup(root, docker=False, code_only=False):
         checksum.write_text(f'{digest}  {archive.name}\n')
         manifest.update({'archivo': archive.name, 'sha256': digest})
         archive.with_suffix(archive.suffix + '.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
+        for file in [archive, checksum, archive.with_suffix(archive.suffix + '.json')]:
+            file.chmod(0o600)
+        target.chmod(0o700)
         if history.exists():
             record(root, f'Respaldo {archive.name}; commit {head[:7]}; base de datos: {"sí" if dump else "NO (solo código)"}; SHA256 {digest}.')
         return archive

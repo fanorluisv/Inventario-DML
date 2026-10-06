@@ -33,3 +33,6 @@ backups/
 # Réplica privada de código, base y configuración del Codespace
 replica-codespace/
 __pycache__/
+
+# Historial generado; la plantilla pública está en docs/contexto-proyecto.md
+/backkupcode.md
