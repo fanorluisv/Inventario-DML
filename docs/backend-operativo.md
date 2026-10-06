@@ -36,7 +36,8 @@ El registro y edición de equipos incluye búsqueda con sugerencias de sistema o
 - Responsables e identificación; alta de personas antes de asignarles equipos. En Registrar/Editar equipo, el selector permite elegir uno existente o crear uno nuevo sin salir del formulario. El nuevo responsable y su asignación se guardan juntos al guardar el equipo; cancelar descarta el alta pendiente.
 - Mantenimiento semestral, fechas e historial de intervenciones.
 - Bodega, existencias, entregas vinculadas al acta y devoluciones.
-- Actas con copia inmutable de datos, hoja de vida, fotografías JPG/PNG e impresión/PDF.
+- Actas con copia de los activos entregados, hoja de vida, fotografías JPG/PNG e impresión/PDF. Las correcciones de actas, eventos, licencias, monitores y entregas de accesorios conservan sus códigos y registran valores anteriores y nuevos en auditoría. Las actas conservan los activos originales y el historial no se puede borrar.
+- Fechas de formularios y documentos en `dd/mm/aaaa` (por ejemplo, `06/10/2026`), almacenadas en PostgreSQL en formato ISO. Editar una licencia conserva sus cupos asignados; la cantidad no puede reducirse por debajo de las asignaciones existentes.
 - Reportes y CSV con los filtros aplicados.
 - Historial real de cambios de responsable desde la integración. No se inventan movimientos anteriores.
 - Credenciales de equipo, correo y NAS, cifradas y exclusivas del administrador.
