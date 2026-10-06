@@ -85,6 +85,30 @@ Licencias existentes sin período conservan su vencimiento hasta indicar uno.
 Reporte con vencidas, próximas en 30 días, vigentes, perpetuas y sin fecha; CSV.
 La API comprueba que período, inicio y vencimiento coincidan.
 
+### 06/10/2026 — continuidad, respaldos y réplica
+
+Se creó `backkupcode.md` en la carpeta local y su plantilla pública
+`docs/contexto-proyecto.md`. El archivo generado se excluye de Git para que las
+entradas automáticas no bloqueen actualizaciones del código. Las instrucciones
+AGENTS.md piden documentar los cambios posteriores y sus pruebas.
+Se implementaron archivos completos con código, cambios sin commit, historial
+Git, `.env`, `backend/.env` y una base PostgreSQL en formato custom, más manifest
+JSON y SHA256. Se excluyen dependencias regenerables, respaldos anteriores y
+réplicas para evitar crecimiento recursivo.
+La réplica del Codespace conserva versiones en `replica-codespace/` y un enlace
+`latest`. La base local operacional no se sustituye automáticamente.
+Servicio local de usuario instalado: `licencias-dml-replica.service`, cada 15
+minutos mientras el computador esté encendido, con sesión iniciada y conexión.
+No inicia automáticamente un Codespace detenido. El Codespace activo genera
+respaldos cada hora; su suspensión sigue siendo la normal de GitHub.
+Se verificó una descarga real con SHA256 y se restauraron los respaldos local y
+remoto en bases temporales. La clave del respaldo remoto descifró correctamente
+las credenciales restauradas sin mostrarlas. Se corrigió la transferencia de
+rutas de scp y la extracción segura para Python local 3.11.2.
+Destino adicional externo/nube: pendiente de elección del usuario. Las copias en
+el mismo disco NO protegen ante pérdida del computador; los archivos privados no
+están en GitHub. El contexto y los scripts sí están publicados.
+
 ## Archivos principales
 
 - `frontend/src/App.tsx`: navegación, equipos y reportes.
@@ -127,6 +151,8 @@ npm test --prefix backend
   No despierta el Codespace ni simula actividad para impedir su suspensión.
 - Los archivos completos quedan en `backups/completos/` con permisos privados;
   contienen datos y `.env`, por eso NO se suben a Git.
+- La plantilla pública es `docs/contexto-proyecto.md`; `backkupcode.md` se genera
+  localmente para que su registro no interfiera con Git.
 - `backkupcode.md` incorpora las operaciones realizadas por estos scripts y los
   commits nuevos. Los scripts conservan sus registros de errores en `.runtime/`.
   Una modificación sin commit se conserva en el archivo de respaldo, pero no se
@@ -134,6 +160,21 @@ npm test --prefix backend
 - Copiar los archivos completos a un disco externo o almacenamiento independiente
   protege ante daño del PC. GitHub conserva el código publicado y este contexto,
   pero no la base de datos ni las claves privadas.
+
+## Administrar la réplica automática de este equipo
+
+```bash
+systemctl --user status licencias-dml-replica.service
+systemctl --user restart licencias-dml-replica.service
+systemctl --user stop licencias-dml-replica.service
+systemctl --user disable licencias-dml-replica.service
+```
+
+El servicio instalado en este equipo usa `/home/ph/Documents/INVENTARIO`; en otro
+computador hay que instalarlo con la nueva ruta. No enviar contraseñas por chat.
+El modo manual `bash scripts/iniciar-replica-local.sh` no instala un servicio de
+inicio de sesión. Los errores se anotan en `.runtime/replica-local.log` y mantienen
+la réplica anterior. Para generar el contexto si no existe, ejecutar un respaldo.
 
 ## Recuperación local o en otro computador
 
