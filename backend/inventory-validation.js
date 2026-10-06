@@ -105,9 +105,12 @@ function validateInventory(next, previous, credentials) {
     date(d.receivedDate, 'Recibido'); date(d.returnDate, 'Devolución');
     if ((d.asset.acquired && d.date < d.asset.acquired) || (d.returnDate && d.returnDate < d.date)) fail('Fechas del acta inválidas.');
   }
-  // Historical documents are immutable. Corrections are recorded as new entries.
+  // Corrections preserve record IDs and their original equipment association.
   for (const key of ['actas','hojas-vida']) for (const old of previous[key]) {
-    if (!isDeepStrictEqual(old, next[key].find(x => x.id === old.id))) fail('No se puede modificar o borrar el historial guardado.');
+    const current = next[key].find(x => x.id === old.id);
+    if (!current) fail('No se puede borrar el historial guardado.');
+    if (key === 'actas' && (!isDeepStrictEqual(old.asset, current.asset) || !isDeepStrictEqual(old.monitors, current.monitors))) fail('La corrección del acta debe conservar los activos entregados.');
+    if (key === 'hojas-vida' && (old.equipmentId !== current.equipmentId || old.kind !== current.kind)) fail('La corrección debe conservar el equipo y el tipo de evento.');
   }
   for (const s of next.accesorios.stock) {
     text(s.name, 'Accesorio', true); text(s.brand, 'Marca');
@@ -124,7 +127,7 @@ function validateInventory(next, previous, credentials) {
   }
   for (const old of previous.accesorios.assignments) {
     const current = next.accesorios.assignments.find(a => a.id === old.id);
-    if (!current || !isDeepStrictEqual({ ...old, returned: '' }, { ...current, returned: '' }) || (old.returned && old.returned !== current.returned)) fail('No se puede borrar o alterar una entrega anterior.');
+    if (!current || ['stockId','equipmentId','deliveryId'].some(key => old[key] !== current[key])) fail('La corrección debe conservar el accesorio, el equipo y el acta originales.');
   }
   for (const [id, photo] of Object.entries(next.fotos)) {
     reference(id, 'Fotografía');

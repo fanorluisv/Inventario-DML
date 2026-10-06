@@ -158,6 +158,18 @@ function installInventory(app, { pool, auth, encrypt, decrypt }) {
       const changed = keys.filter(k => !isDeepStrictEqual(row.datos[k], next[k]));
       if (!isDeepStrictEqual(oldCredentials, credentials)) changed.push('credenciales');
       if (!changed.length) return { revision: row.revision };
+      const corrections = [];
+      for (const key of ['actas','hojas-vida','licencias','monitores']) {
+        for (const old of row.datos[key]) {
+          const current = next[key].find(record => record.id === old.id);
+          if (current && !isDeepStrictEqual(old, current)) corrections.push({ modulo: key, id: old.id, anterior: old, nuevo: current });
+        }
+      }
+      for (const old of row.datos.accesorios.assignments) {
+        const current = next.accesorios.assignments.find(record => record.id === old.id);
+        if (current && !isDeepStrictEqual(old, current)) corrections.push({ modulo: 'entregas-accesorios', id: old.id, anterior: old, nuevo: current });
+      }
+      if (corrections.length) await client.query("INSERT INTO auditoria(actor_id,accion,entidad,cambios_json) VALUES($1,'corregir','inventario',$2)", [req.user.sub, JSON.stringify({ revision: row.revision + 1, registros: corrections })]);
       await synchronizeAssets(client, next, row.datos, req.user.sub);
       await client.query('UPDATE inventario_integrado SET datos=$1,credenciales_cifradas=$2,revision=revision+1,actualizado_en=now() WHERE id=1', [JSON.stringify(next), encrypt(JSON.stringify(credentials))]);
       // Never copy credential secrets into audit logs.

@@ -71,9 +71,9 @@ test('Integración PostgreSQL: migración, módulos, roles, transacciones y conc
       for (const mutate of [
         s => s.licencias[0].assignedIds.push(equipment.id),
         s => { s.accesorios.stock[0].quantity = 0; },
-        s => { s['hojas-vida'][0].description = 'alterado'; },
+        s => { s['hojas-vida'] = []; },
         s => { s.equipos = []; },
-        s => { s.actas[0].city = 'alterada'; },
+        s => { s.actas = []; },
         s => { s.equipos[0].acquired = '2026-02-30'; },
         s => { s.equipos[0].description = 'x'.repeat(121); },
         s => { s.equipos[0].description = 123; },
@@ -178,6 +178,29 @@ test('Integración PostgreSQL: migración, módulos, roles, transacciones y conc
       assert.ok(!saved.data.state.equipos.some(a => a.owner === name));
       assert.equal((await call('inventario/responsable', token, { revision: current.revision, previousName: person.name, person })).status, 409);
       assert.equal((await call('inventario/responsable', token, { revision: saved.data.revision, previousName: person.name, person: { ...person, name: 'Sin asignar' } })).status, 422);
+    });
+    await t.test('corrige fechas, licencias e historial conservando referencias y auditoría', async () => {
+      const current = (await call('inventario', token)).data;
+      const corrected = structuredClone(current.state);
+      corrected.licencias[0].acquired = '2025-12-31';
+      corrected.licencias[0].expires = '2098-12-31';
+      corrected.monitores[0].model = 'Modelo corregido';
+      corrected['hojas-vida'][0].date = '2026-01-09';
+      corrected.actas[0].date = '2026-01-12';
+      corrected.actas[0].city = 'Ciudad corregida';
+      corrected.accesorios.assignments[0].date = '2026-01-12';
+      const saved = await call('inventario', token, { revision: current.revision, state: corrected }, 'PUT');
+      assert.equal(saved.status, 200, JSON.stringify(saved));
+      assert.deepEqual((await call('inventario', token)).data.state, corrected);
+      const audit = (await pool.query("SELECT cambios_json FROM auditoria WHERE accion='corregir' ORDER BY id DESC LIMIT 1")).rows[0].cambios_json;
+      assert.ok(audit.registros.some(r => r.modulo === 'licencias' && r.anterior.acquired !== r.nuevo.acquired));
+      assert.ok(audit.registros.some(r => r.modulo === 'actas' && r.anterior.city !== r.nuevo.city));
+      assert.ok(!JSON.stringify(audit).includes(credentials[0].password));
+      assert.equal((await call('inventario', readerToken, { revision: saved.data.revision, state: corrected }, 'PUT')).status, 403);
+      const invalid = structuredClone(corrected); invalid.licencias[0].quantity = 0;
+      assert.equal((await call('inventario', token, { revision: saved.data.revision, state: invalid }, 'PUT')).status, 422);
+      const moved = structuredClone(corrected); moved.actas[0].asset.serial = 'otro';
+      assert.equal((await call('inventario', token, { revision: saved.data.revision, state: moved }, 'PUT')).status, 422);
     });
     await t.test('navegador: formularios, persistencia al salir, documentos y perfil lector', { skip: !process.env.TEST_CHROME }, async () => {
       await require('./browser-check').browserCheck(base.replace('api/v1/', ''), password);
