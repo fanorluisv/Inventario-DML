@@ -29,3 +29,7 @@ backups/
 
 # Maqueta independiente de otro proyecto
 /maqueta-otra-empresa/
+
+# Réplica privada de código, base y configuración del Codespace
+replica-codespace/
+__pycache__/

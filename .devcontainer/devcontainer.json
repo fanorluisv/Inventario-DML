@@ -12,6 +12,6 @@
     "5433": { "onAutoForward": "ignore" }
   },
   "postCreateCommand": "bash .devcontainer/preparar.sh",
-  "postStartCommand": "bash .devcontainer/iniciar-automatico.sh",
+  "postStartCommand": "bash .devcontainer/iniciar-servicios.sh",
   "remoteUser": "vscode"
 }
