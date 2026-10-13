@@ -104,3 +104,13 @@ Con `TEST_CHROME` se verifica además el navegador sobre la compilación de `fro
 ## Primera instalación en otro equipo
 
 Requiere Node.js 24, PostgreSQL y las dependencias de ambas carpetas. Configurar `.env` y `backend/.env` usando sus ejemplos, con claves propias. Docker crea el esquema inicial desde `backend/db/postgres-schema.sql`; para PostgreSQL instalado directamente, ejecutar ese SQL primero. La ruta `POST /api/v1/users/bootstrap` permite crear el administrador solo si aún no hay usuarios. No repetir el bootstrap en la base existente.
+
+## Alquileres de equipos para uso interno
+
+Registrar/Editar equipo incluye tenencia, proveedor, contrato, inicio, devolución
+prevista, valor COP por período, periodicidad, responsable del mantenimiento y
+estado de alquiler. La migración `backend/db/rental-fields.sql` añade columnas
+sin eliminar información. La API sincroniza estos campos desde el inventario
+integrado a `activos`. Existentes: tenencia Por confirmar. Devueltos: sin
+responsable asignado y conservando historial. En Reportes se controlan fechas de
+devolución y se exportan todos los campos en el CSV de equipos.

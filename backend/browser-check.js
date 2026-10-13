@@ -42,6 +42,8 @@ async function browserCheck(base, password) {
     assert.equal(await evaluate("document.querySelector('[name=owner]').value"), originalOwner);
     await click('Crear nuevo responsable');
     await fill('newOwnerName', 'Responsable del navegador'); await fill('newOwnerIdentification', '009988');
+    await fill('tenure','Alquilado'); await fill('rentalSupplier','Proveedor navegador'); await fill('rentalContract','ALQ-CHROME');
+    await fill('rentalStart','01/10/2026'); await fill('rentalReturnDue','01/10/2027'); await fill('rentalAmount','120000');
     await fill('name', 'Equipo registrado en navegador'); await fill('serial', 'BROWSER-001'); await fill('ram', '16 GB');
     await click('Guardar equipo');
     await until("document.body.textContent.includes('Todos los cambios guardados') && document.body.textContent.includes('Equipo registrado en navegador')");
@@ -73,6 +75,8 @@ async function browserCheck(base, password) {
     await until("document.body.textContent.includes('Equipo registrado en navegador')");
     await click('Equipo registrado en navegador');
     assert.ok((await evaluate('document.body.textContent')).includes('16 GB'));
+    assert.ok((await evaluate('document.body.textContent')).includes('Proveedor navegador'));
+    assert.ok((await evaluate('document.body.textContent')).includes('ALQ-CHROME'));
     assert.ok((await evaluate('document.body.textContent')).includes('Responsable del navegador'));
     await click('Editar equipo');
     await until("!!document.querySelector('[name=owner]')");

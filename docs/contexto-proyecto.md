@@ -109,6 +109,24 @@ Destino adicional externo/nube: pendiente de elección del usuario. Las copias e
 el mismo disco NO protegen ante pérdida del computador; los archivos privados no
 están en GitHub. El contexto y los scripts sí están publicados.
 
+### 13/10/2026 — equipos alquilados a proveedores para uso interno
+
+Se añadieron tenencia (Propio/Alquilado/Por confirmar), proveedor, contrato,
+inicio de alquiler, devolución prevista, valor en COP por período, periodicidad
+Mensual/Anual/Único, responsable del mantenimiento DML/Proveedor y estado
+Activo/Devuelto. Los registros existentes no se clasifican automáticamente como
+propios: aparecen Por confirmar hasta revisarlos. La migración es aditiva y
+repetible: nueve columnas en `activos`, además del inventario JSONB integrado.
+Registrar/Editar equipo permite mantener esos campos; la ficha y el CSV los
+incluyen. Reportes muestra control de alquileres y devoluciones vencidas o
+próximas en 30 días. Un equipo devuelto queda sin responsable y conserva su
+registro e historial. Se validan proveedor, fechas, monto y opciones en la API.
+La auditoría conserva también valores anteriores y nuevos de equipos.
+Validación: compilación, lint, pruebas frontend y 16 pruebas backend aprobadas,
+incluyendo PostgreSQL temporal y registro/consulta de alquiler en Chrome.
+La aplicación remota debe actualizarse y reiniciar la API después de un respaldo
+para aplicar la migración. No se restaura ni reemplaza el inventario existente.
+
 ## Archivos principales
 
 - `frontend/src/App.tsx`: navegación, equipos y reportes.

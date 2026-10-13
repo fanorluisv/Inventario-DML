@@ -205,6 +205,26 @@ test('Integración PostgreSQL: migración, módulos, roles, transacciones y conc
       const moved = structuredClone(corrected); moved.actas[0].asset.serial = 'otro';
       assert.equal((await call('inventario', token, { revision: saved.data.revision, state: moved }, 'PUT')).status, 422);
     });
+    await t.test('alquiler conserva equipo, persiste columnas SQL y valida devolución', async () => {
+      const current = (await call('inventario', token)).data;
+      const rented = structuredClone(current.state);
+      Object.assign(rented.equipos[0], { tenure:'Alquilado', rentalSupplier:'Proveedor de prueba', rentalContract:'ALQ-001', rentalStart:'2026-10-01', rentalReturnDue:'2027-10-01', rentalAmount:'150000.50', rentalPeriod:'Mensual', maintenanceResponsible:'Proveedor', rentalStatus:'Activo' });
+      const saved = await call('inventario', token, {revision:current.revision,state:rented}, 'PUT');
+      assert.equal(saved.status, 200, JSON.stringify(saved));
+      const sql = (await pool.query('SELECT tenencia,proveedor_alquiler,inicio_alquiler,devolucion_prevista,valor_alquiler FROM activos WHERE codigo=$1',[rented.equipos[0].id])).rows[0];
+      assert.equal(sql.tenencia,'Alquilado'); assert.equal(sql.proveedor_alquiler,'Proveedor de prueba'); assert.equal(sql.valor_alquiler,'150000.50');
+      assert.deepEqual((await call('inventario', token)).data.state,rented);
+      for (const mutate of [s=>s.equipos[0].rentalReturnDue='2026-09-01',s=>s.equipos[0].rentalAmount='-1',s=>s.equipos[0].rentalSupplier='',s=>s.equipos[0].rentalStatus='Devuelto']) {
+        const invalid=structuredClone(rented); mutate(invalid);
+        assert.equal((await call('inventario', token, {revision:saved.data.revision,state:invalid},'PUT')).status,422);
+      }
+      const returned=structuredClone(rented);returned.equipos[0].rentalStatus='Devuelto';returned.equipos[0].owner='Sin asignar';
+      const result=await call('inventario',token,{revision:saved.data.revision,state:returned},'PUT');
+      assert.equal(result.status,200,JSON.stringify(result));
+      assert.equal((await pool.query('SELECT responsable_id FROM activos WHERE codigo=$1',[returned.equipos[0].id])).rows[0].responsable_id,null);
+      // Restore assignment for the independent browser scenario.
+      assert.equal((await call('inventario',token,{revision:result.data.revision,state:rented},'PUT')).status,200);
+    });
     await t.test('navegador: formularios, persistencia al salir, documentos y perfil lector', { skip: !process.env.TEST_CHROME }, async () => {
       await require('./browser-check').browserCheck(base.replace('api/v1/', ''), password);
       const loaded = (await call('inventario', token)).data;

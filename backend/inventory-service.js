@@ -18,6 +18,7 @@ async function migrate(pool) {
     fecha TIMESTAMPTZ NOT NULL DEFAULT now()
   );`);
   await pool.query(fs.readFileSync(path.join(__dirname, 'db/identity-guards.sql'), 'utf8'));
+  await pool.query(fs.readFileSync(path.join(__dirname, 'db/rental-fields.sql'), 'utf8'));
 }
 
 async function initialize(client, encrypt, decrypt) {
@@ -31,7 +32,7 @@ async function initialize(client, encrypt, decrypt) {
   const names = new Map(people.map(p => [String(p.id), p.nombre]));
   const codes = new Map(assets.map(a => [String(a.id), a.codigo]));
   state.responsables = people.map(p => ({ name: p.nombre, identification: p.identificacion || '', documentType: 'Cédula de ciudadanía' }));
-  state.equipos = assets.map(a => ({ id: a.codigo, name: a.nombre, description: a.descripcion || '', type: a.tipo, brand: a.marca || '', model: a.modelo || '', serial: a.serial || '', owner: names.get(String(a.responsable_id)) || 'Sin asignar', acquired: iso(a.fecha_adquisicion), status: a.disponibilidad === 'Baja' ? 'Baja' : a.estado, observations: a.observaciones || '', area: '', location: '', screen: '', ram: '', cpu: '', disk: '', os: '', gpu: '', maintenance: 'No', lastMaintenance: '' }));
+  state.equipos = assets.map(a => ({ id: a.codigo, name: a.nombre, description: a.descripcion || '', tenure:a.tenencia||'Por confirmar', rentalSupplier:a.proveedor_alquiler||'', rentalContract:a.contrato_alquiler||'', rentalStart:iso(a.inicio_alquiler), rentalReturnDue:iso(a.devolucion_prevista), rentalAmount:a.valor_alquiler===null?'':String(a.valor_alquiler), rentalPeriod:a.periodicidad_alquiler||'', maintenanceResponsible:a.responsable_mantenimiento||'', rentalStatus:a.estado_alquiler||'', type: a.tipo, brand: a.marca || '', model: a.modelo || '', serial: a.serial || '', owner: names.get(String(a.responsable_id)) || 'Sin asignar', acquired: iso(a.fecha_adquisicion), status: a.disponibilidad === 'Baja' ? 'Baja' : a.estado, observations: a.observaciones || '', area: '', location: '', screen: '', ram: '', cpu: '', disk: '', os: '', gpu: '', maintenance: 'No', lastMaintenance: '' }));
   const lots = (await client.query('SELECT l.*,p.nombre producto,p.version FROM licencias l JOIN productos p ON p.id=l.producto_id ORDER BY l.id')).rows;
   const assignments = (await client.query('SELECT * FROM asignaciones_licencia WHERE fin IS NULL')).rows;
   if (assignments.some(a => a.responsable_id)) throw new InventoryError('Hay licencias asignadas por persona. Se requiere adaptar esas asignaciones antes de habilitar la integración.', 409);
@@ -86,6 +87,7 @@ async function synchronizeAssets(client, next, previous, actor) {
       if (reserved.rowCount) throw new InventoryError(`El código ${a.id} ya se utilizó. Recarga para obtener otro código.`, 409);
       await client.query('INSERT INTO activos(codigo,tipo,nombre,marca,modelo,serial,fecha_adquisicion,estado,disponibilidad,responsable_id,observaciones,descripcion) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)', params);
     } else await client.query('UPDATE activos SET tipo=$2,nombre=$3,marca=$4,modelo=$5,serial=$6,fecha_adquisicion=$7,estado=$8,disponibilidad=$9,responsable_id=CASE WHEN $13 THEN responsable_id ELSE $10 END,observaciones=$11,descripcion=$12,actualizado_en=now() WHERE codigo=$1', [...params, old.owner === a.owner]);
+    await client.query('UPDATE activos SET tenencia=$2,proveedor_alquiler=$3,contrato_alquiler=$4,inicio_alquiler=$5,devolucion_prevista=$6,valor_alquiler=$7,periodicidad_alquiler=$8,responsable_mantenimiento=$9,estado_alquiler=$10 WHERE codigo=$1', [a.id,a.tenure||'Por confirmar',a.rentalSupplier||null,a.rentalContract||null,a.rentalStart||null,a.rentalReturnDue||null,a.rentalAmount||null,a.rentalPeriod||null,a.maintenanceResponsible||null,a.rentalStatus||null]);
     if (!old || old.owner !== a.owner) await client.query('INSERT INTO historial_responsables(codigo,anterior,nuevo,actor_id) VALUES($1,$2,$3,$4)', [a.id, old?.owner || 'Sin registro previo', a.owner, actor]);
   }
   for (const old of previous.equipos) if (!next.equipos.some(a => a.id === old.id)) {
@@ -159,7 +161,7 @@ function installInventory(app, { pool, auth, encrypt, decrypt }) {
       if (!isDeepStrictEqual(oldCredentials, credentials)) changed.push('credenciales');
       if (!changed.length) return { revision: row.revision };
       const corrections = [];
-      for (const key of ['actas','hojas-vida','licencias','monitores']) {
+      for (const key of ['actas','hojas-vida','licencias','monitores','equipos']) {
         for (const old of row.datos[key]) {
           const current = next[key].find(record => record.id === old.id);
           if (current && !isDeepStrictEqual(old, current)) corrections.push({ modulo: key, id: old.id, anterior: old, nuevo: current });

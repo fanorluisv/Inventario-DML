@@ -46,6 +46,17 @@ function validateInventory(next, previous, credentials) {
     if (!['Sí','No'].includes(a.maintenance)) fail('Mantenimiento inválido.');
     date(a.acquired, 'Adquisición'); date(a.lastMaintenance, 'Mantenimiento', a.maintenance === 'Sí');
     if (a.lastMaintenance && a.acquired && a.lastMaintenance < a.acquired) fail('El mantenimiento no puede preceder la adquisición.');
+    if (a.tenure !== undefined && !['Propio','Alquilado','Por confirmar'].includes(a.tenure)) fail('Tenencia de equipo inválida.');
+    if (a.tenure === 'Alquilado') {
+      text(a.rentalSupplier, 'Proveedor de alquiler', true, 200); text(a.rentalContract, 'Contrato de alquiler', false, 200);
+      date(a.rentalStart, 'Inicio del alquiler', true); date(a.rentalReturnDue, 'Devolución prevista', true);
+      if (a.rentalReturnDue < a.rentalStart) fail('La devolución prevista no puede preceder el inicio del alquiler.');
+      if (typeof a.rentalAmount !== 'string' || !/^\d{1,12}(\.\d{1,2})?$/.test(a.rentalAmount)) fail('Valor del alquiler inválido: indica COP con hasta dos decimales.');
+      if (!['Mensual','Anual','Único'].includes(a.rentalPeriod)) fail('Periodicidad de alquiler inválida.');
+      if (!['DML','Proveedor'].includes(a.maintenanceResponsible)) fail('Responsable de mantenimiento inválido.');
+      if (!['Activo','Devuelto'].includes(a.rentalStatus)) fail('Estado de alquiler inválido.');
+      if (a.rentalStatus === 'Devuelto' && a.owner !== 'Sin asignar') fail('El equipo devuelto al proveedor debe quedar sin responsable asignado.');
+    }
     const old = previous.equipos.find(x => x.id === a.id);
     if (old && old.type !== a.type) fail('El tipo del equipo no se puede cambiar.');
     if (monitors.has(a.id)) fail('Un equipo y un monitor no pueden compartir código.');
