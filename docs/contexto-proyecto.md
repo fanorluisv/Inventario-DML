@@ -130,6 +130,18 @@ arrancó con la versión nueva; interfaz y API respondieron en 5173. Se creó ot
 respaldo completo después de aplicar el cambio. No se restauró ni reemplazó el
 inventario existente.
 
+### 14/10/2026 — historial de usuarios en hoja de vida
+
+Se agregó una tabla de asignaciones en la hoja de vida del equipo, tanto en
+pantalla como en impresión/PDF: usuario, fecha de inicio, fecha de devolución y
+estado. Se deriva del historial de responsables ya guardado, respetando el orden
+original de movimientos y la zona horaria de Bogotá. Un cambio de responsable
+cierra la asignación anterior; la asignación actual muestra devolución pendiente.
+Fechas anteriores sin registro quedan Por confirmar; no se generan fechas
+supuestas ni se modifica el historial original. Las reasignaciones al mismo
+usuario mantienen períodos distintos. No requiere migración ni reinicio de API.
+Compilación, lint, siete archivos de pruebas frontend y prueba Chrome aprobados.
+
 ## Archivos principales
 
 - `frontend/src/App.tsx`: navegación, equipos y reportes.

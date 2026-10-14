@@ -84,6 +84,10 @@ async function browserCheck(base, password) {
     await click('Cancelar');
     await click('Hoja de vida');
     await until("document.body.textContent.includes('Documento de inventario')");
+    assert.ok((await evaluate('document.body.textContent')).includes('Historial de usuarios del equipo'));
+    assert.ok((await evaluate('document.body.textContent')).includes('Fecha de inicio'));
+    assert.ok((await evaluate('document.body.textContent')).includes('Fecha de devolución'));
+    assert.ok(await evaluate("[...document.querySelectorAll('.document-paper table')].some(t=>t.textContent.includes('Fecha de inicio')&&t.textContent.includes('Responsable del navegador')&&t.textContent.includes('Asignación actual'))"));
     await command('Page.captureScreenshot', { format: 'png' }).then(r => fs.writeFileSync('/tmp/inventario-integrado.png', Buffer.from(r.data, 'base64')));
     await click('Cerrar sesión'); await until("!!document.querySelector('[name=email]')");
     await fill('email', 'lector@example.test'); await fill('password', password); await click('Ingresar');
