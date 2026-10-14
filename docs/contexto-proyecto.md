@@ -124,8 +124,11 @@ registro e historial. Se validan proveedor, fechas, monto y opciones en la API.
 La auditoría conserva también valores anteriores y nuevos de equipos.
 Validación: compilación, lint, pruebas frontend y 16 pruebas backend aprobadas,
 incluyendo PostgreSQL temporal y registro/consulta de alquiler en Chrome.
-La aplicación remota debe actualizarse y reiniciar la API después de un respaldo
-para aplicar la migración. No se restaura ni reemplaza el inventario existente.
+El 14/10/2026 se creó un respaldo completo del Codespace, se actualizó al commit
+`1e0e0e4` y se verificaron las nueve columnas en PostgreSQL. La aplicación se
+arrancó con la versión nueva; interfaz y API respondieron en 5173. Se creó otro
+respaldo completo después de aplicar el cambio. No se restauró ni reemplazó el
+inventario existente.
 
 ## Archivos principales
 
