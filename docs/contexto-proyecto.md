@@ -142,6 +142,12 @@ supuestas ni se modifica el historial original. Las reasignaciones al mismo
 usuario mantienen períodos distintos. No requiere migración ni reinicio de API.
 Compilación, lint, siete archivos de pruebas frontend y prueba Chrome aprobados.
 
+### 14/10/2026 — logo en hojas de vida
+
+Se añadió el mismo logo DML de las actas al encabezado de la hoja de vida,
+a la derecha y abarcando las dos primeras filas. Se reutilizan imagen y estilos
+para vista previa, impresión y PDF. Validación: compilación y lint aprobados.
+
 ## Archivos principales
 
 - `frontend/src/App.tsx`: navegación, equipos y reportes.
