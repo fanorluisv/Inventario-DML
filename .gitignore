@@ -36,3 +36,6 @@ __pycache__/
 
 # Historial generado; la plantilla pública está en docs/contexto-proyecto.md
 /backkupcode.md
+
+# Instalación local privada recuperada de Codespaces
+/local-codespace/

@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import tarfile
 
-EXCLUDED = {'node_modules', 'dist', 'backups', '.runtime', '.tools', '.agents', '.codex', '.aws', 'replica-codespace', '__pycache__'}
+EXCLUDED = {'node_modules', 'dist', 'backups', '.runtime', '.tools', '.agents', '.codex', '.aws', 'replica-codespace', 'local-codespace', '__pycache__'}
 
 def now():
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')

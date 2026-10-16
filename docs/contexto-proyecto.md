@@ -148,6 +148,30 @@ Se añadió el mismo logo DML de las actas al encabezado de la hoja de vida,
 a la derecha y abarcando las dos primeras filas. Se reutilizan imagen y estilos
 para vista previa, impresión y PDF. Validación: compilación y lint aprobados.
 
+### 16/10/2026 — aplicación local por bloqueo de facturación de GitHub
+
+GitHub devolvió HTTP 402 al iniciar Codespaces: bloqueo de facturación.
+A petición del usuario se habilitó una instalación LOCAL privada en
+`/home/ph/Documents/INVENTARIO/local-codespace`, con el respaldo de Codespaces
+del 15/10/2026 a las 16:24:24 de Colombia, commit `1b63158`.
+Se verificó SHA256 y se restauró PostgreSQL en una base NUEVA
+`licencias_dml_local_20261016` en el servidor local 16.15 (puerto 5433).
+La base local anterior y el Codespace se conservaron sin reemplazar datos.
+La instalación usa las claves y usuarios del respaldo; cambia DATABASE_URL a la
+base nueva y FRONTEND_ORIGIN a http://127.0.0.1:5173. Sus `.env` son privados.
+Las dependencias idénticas se reutilizan mediante enlaces a las carpetas
+node_modules de esta copia principal; no eliminar estas dependencias.
+Servicio de usuario `licencias-dml-local.service` activado al iniciar sesión.
+Abrir http://127.0.0.1:5173; iniciar con `bash iniciar-local.sh` desde la raíz.
+Respaldos completos horarios de la base ACTIVA mediante
+`licencias-dml-local-backup.timer`, en `local-codespace/backups/completos/`.
+La réplica de Codespaces sigue separada: no envía esta base local ni fusiona
+inventarios. Al recuperar GitHub, elegir expresamente cuál base debe continuar.
+Registros: `.runtime/aplicacion-local.log`. Parar la aplicación:
+`systemctl --user stop licencias-dml-local.service`.
+La carpeta privada local-codespace queda excluida de Git y de los respaldos
+recursivos de la copia principal. Sus respaldos completos se generan aparte.
+
 ## Archivos principales
 
 - `frontend/src/App.tsx`: navegación, equipos y reportes.
